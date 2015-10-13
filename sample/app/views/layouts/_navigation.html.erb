@@ -1,0 +1,43 @@
+<%# navigation styled for Bootstrap 3.0 %>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <%= link_to 'Buckets', root_url, class: 'navbar-brand', title: 'Buckets - 内测版仅供体验，用户数据可能会不定期清空' %>
+    </div>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <%= render 'layouts/navigation_links' %>
+      </ul>
+      <ul class="nav navbar-nav pull-right">
+        <% if nil and current_user %>
+          <li>
+            <% if current_user and !current_user.avatar_url.blank? %>
+              <%= image_tag current_user.avatar_url, class: 'img-circle navbar-avatar', alt: current_user.nickname %>
+            <% else %>
+              <span class="glyphicon glyphicon-user navbar-avatar">
+              </span>
+            <% end %>
+          </li>
+          <li>
+            <p class="navbar-text"> <%= current_user.nickname %> </p>
+          </li>
+          <li>
+            <%= link_to messages_path, title: '提醒' do %>
+              <span class="glyphicon glyphicon-bell">
+              </span>
+              <% if current_user.notifies.unread.any? %>
+                <span class="badge"><%= current_user.notifies.unread.count %></span>
+              <% end %>
+            <% end -%>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>

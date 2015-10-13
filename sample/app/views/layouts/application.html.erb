@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= content_for?(:title) ? yield(:title) : "Mindpin Buckets Demo" %></title>
+    <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Mindpin Buckets Demo" %>">
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%= yield(:head) %>
+    <%= csrf_meta_tags %>
+  </head>
+  <body data-spy="scroll" data-target=".bs-docs-sidebar" class="page-demo">
+    <header>
+      <%= render 'layouts/navigation' %>
+    </header>
+    <main role="main">
+      <div class="container" id="container">
+        <div id="messages">
+          <%= render 'layouts/messages' %>
+        </div>
+        <%= yield %>
+      </div>
+    </main>
+  </body>
+</html>
+
