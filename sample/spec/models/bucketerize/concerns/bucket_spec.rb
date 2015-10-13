@@ -4,27 +4,27 @@ describe 'bucket_methods' do
   describe "single collect" do
     class Book
       include Bucketerize::Concerns::Resource
-      act_as_bucket_resource into: :folder
+      act_as_bucket_resource into: :favorite
     end
 
-    class Folder
+    class Favorite
       include Bucketerize::Concerns::Bucket
       act_as_bucket collect: :book
     end
 
-    let(:folder){Folder.create}
+    let(:favorite){Favorite.create}
 
     it do
-      folder.respond_to?(:books).should == true
+      favorite.respond_to?(:books).should == true
     end
 
     it "#add_resource" do
       book = Book.create
-      folder.books.should_not be_any
-      folder.add_resource(book).should == true
-      folder.books.should be_any
+      favorite.books.should_not be_any
+      favorite.add_resource(book).should == true
+      favorite.books.should be_any
       # 重复添加返回 false
-      folder.add_resource(book).should == false
+      favorite.add_resource(book).should == false
     end
 
     it "#add_resources" do
@@ -32,12 +32,12 @@ describe 'bucket_methods' do
       book1 = Book.create
       books << book1
       books << Book.create
-      folder.books.should_not be_any
-      folder.add_resources(books).should == true
-      folder.books.should be_any
+      favorite.books.should_not be_any
+      favorite.add_resources(books).should == true
+      favorite.books.should be_any
       # 重复添加返回 false
-      folder.add_resources([]).should == false
-      folder.add_resources(Book.create).should == false
+      favorite.add_resources([]).should == false
+      favorite.add_resources(Book.create).should == false
     end
 
     describe "add two book" do
@@ -45,47 +45,47 @@ describe 'bucket_methods' do
       let(:book2) { Book.create}
 
       before do
-        folder.add_resources [book1, book2]
+        favorite.add_resources [book1, book2]
       end
 
       it "#remove_resource" do
-        folder.books.count.should == 2
-        folder.books.should include(book1)
-        folder.books.should include(book2)
-        folder.remove_resource(book1).should == true
-        folder.books.should_not include(book1)
-        folder.include_resource?(book1).should == false
-        folder.remove_resource(book2).should == true
-        folder.books.should_not include(book2)
-        folder.include_resource?(book2).should == false
-        folder.books.count.should == 0
-        folder.remove_resource(book2).should == false
+        favorite.books.count.should == 2
+        favorite.books.should include(book1)
+        favorite.books.should include(book2)
+        favorite.remove_resource(book1).should == true
+        favorite.books.should_not include(book1)
+        favorite.include_resource?(book1).should == false
+        favorite.remove_resource(book2).should == true
+        favorite.books.should_not include(book2)
+        favorite.include_resource?(book2).should == false
+        favorite.books.count.should == 0
+        favorite.remove_resource(book2).should == false
       end
 
       it "#remove_resources wrong type" do
-        folder.remove_resources(book1).should == false
-        folder.remove_resources([]).should == false
-        folder.remove_resources(nil).should == false
+        favorite.remove_resources(book1).should == false
+        favorite.remove_resources([]).should == false
+        favorite.remove_resources(nil).should == false
       end
 
       it "#remove_resources [book]" do
-        folder.remove_resources([book1]).should == true
-        folder.books.should_not include(book1)
-        folder.remove_resources([book2]).should == true
-        folder.books.should_not include(book2)
+        favorite.remove_resources([book1]).should == true
+        favorite.books.should_not include(book1)
+        favorite.remove_resources([book2]).should == true
+        favorite.books.should_not include(book2)
 
         # 没有则忽略
-        folder.remove_resources([book2]).should == true
+        favorite.remove_resources([book2]).should == true
       end
 
       it "#remove_resources [books]" do
-        folder.remove_resources([book1, book2]).should == true
-        folder.books.should_not include(book1)
-        folder.books.should_not include(book2)
-        folder.include_resources?([book1, book2]).should == false
+        favorite.remove_resources([book1, book2]).should == true
+        favorite.books.should_not include(book1)
+        favorite.books.should_not include(book2)
+        favorite.include_resources?([book1, book2]).should == false
 
         # 没有则忽略
-        folder.remove_resources([book1, book2]).should == true
+        favorite.remove_resources([book1, book2]).should == true
       end
     end
   end
