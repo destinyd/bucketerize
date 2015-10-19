@@ -38,6 +38,13 @@ end
 
 以上例子为的意思为，收藏夹模型叫做 Folder(文件夹), 收藏内容为 Photo(图片)
 
+最后还需要给 User 加上相关关系(收藏夹，本文为Folder)
+```ruby
+class User
+  has_many :folders
+end
+```
+
 ### 路由
 ```ruby
 # config/routes.rb
