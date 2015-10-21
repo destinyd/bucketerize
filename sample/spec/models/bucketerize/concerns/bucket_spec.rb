@@ -207,5 +207,61 @@ describe 'bucket_methods' do
       end
     end
   end
-end
+  describe "special" do
+    module KcCourses
+      class Course
+        include Bucketerize::Concerns::Resource
+        act_as_bucket_resource into: :"kc_courses/fav"
+      end
 
+      class Chapter
+        include Bucketerize::Concerns::Resource
+        act_as_bucket_resource into: :"kc_courses/fav"
+      end
+
+      class Fav
+        include Bucketerize::Concerns::Bucket
+        act_as_bucket collect: [:"kc_courses/course", :"kc_courses/chapter"]
+      end
+    end
+
+    before do
+      @fav = KcCourses::Fav.create
+      @course = KcCourses::Course.create
+      @chapter = KcCourses::Chapter.create
+    end
+
+    it 'relationships' do
+      expect(@fav.respond_to? :courses).to eq(true)
+      expect(@fav.respond_to? :chapters).to eq(true)
+    end
+
+    it '#add_resource #include_resource #include_resources' do
+      expect(@fav.include_resource?(@course)).to eq(false)
+      expect(@fav.include_resources?([@course])).to eq(false)
+      expect(@fav.add_resource(@course)).to eq(true)
+      expect(@fav.include_resource?(@course)).to eq(true)
+      expect(@fav.include_resources?([@course])).to eq(true)
+    end
+
+    it '#remove_resource' do
+      @fav.add_resource(@course)
+      expect(@fav.remove_resource(@course)).to eq(true)
+      expect(@fav.include_resource?(@course)).to eq(false)
+    end
+
+    it '#remove_resources' do
+      @fav.add_resource(@course)
+      expect(@fav.remove_resources([@course])).to eq(true)
+      expect(@fav.include_resource?(@course)).to eq(false)
+    end
+
+    it 'chapter' do
+      expect(@fav.include_resources?([@chapter])).to eq(false)
+      expect(@fav.add_resource(@chapter)).to eq(true)
+      expect(@fav.include_resources?([@chapter])).to eq(true)
+      expect(@fav.remove_resource(@chapter)).to eq(true)
+      expect(@fav.include_resources?([@chapter])).to eq(false)
+    end
+  end
+end

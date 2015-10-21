@@ -20,14 +20,14 @@ module Bucketerize
           case self.into.class.name
           when "Symbol", "String"
             self.into = self.into.to_s
-            has_and_belongs_to_many self.into.to_s.pluralize.to_s
+            has_and_belongs_to_many into.to_s.split('/').last.pluralize, class_name: into.camelize
           else
             raise "must be symbol or string"
           end
 
           define_method :add_to_bucket do |bucket|
             singularize_name = bucket.class.name.downcase
-            pluralize_name = singularize_name.pluralize
+            pluralize_name = singularize_name.split('/').last.pluralize
             return bucket.add_resource(self) if self.into == singularize_name
             false
           end

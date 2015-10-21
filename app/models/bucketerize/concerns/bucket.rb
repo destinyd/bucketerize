@@ -20,7 +20,6 @@ module Bucketerize
 
           case self.collect.class.name
           when "Symbol", "String"
-            #has_and_belongs_to_many self.collect.to_s.pluralize
             self.collect = [self.collect.to_s]
           when "Array"
             self.collect = self.collect.map(&:to_s)
@@ -34,12 +33,16 @@ module Bucketerize
           belongs_to :user
 
           self.collect.each do |sym|
-            has_and_belongs_to_many sym.to_s.pluralize
+            has_and_belongs_to_many sym.to_s.split('/').last.pluralize, class_name: sym.to_s.camelize
+          end
+
+          define_method :get_pluralize_name do |singularize_name|
+            singularize_name.split('/').last.pluralize
           end
 
           define_method :include_resource? do |resource|
-            singularize_name = resource.class.name.downcase
-            pluralize_name = singularize_name.pluralize
+            singularize_name = resource.class.name.underscore
+            pluralize_name = get_pluralize_name(singularize_name)
             return true if self.collect.include?(singularize_name) and send(pluralize_name).include?(resource)
             false
           end
@@ -52,8 +55,8 @@ module Bucketerize
           end
 
           define_method :add_resource do |resource|
-            singularize_name = resource.class.name.downcase
-            pluralize_name = singularize_name.pluralize
+            singularize_name = resource.class.name.underscore
+            pluralize_name = get_pluralize_name(singularize_name)
             if self.collect.include?(singularize_name) and !include_resource?(resource)
               send(pluralize_name) << resource
               return true
@@ -77,8 +80,8 @@ module Bucketerize
 
           define_method :remove_resource do |resource|
             if include_resource?(resource)
-              singularize_name = resource.class.name.downcase
-              pluralize_name = singularize_name.pluralize
+              singularize_name = resource.class.name.underscore
+              pluralize_name = get_pluralize_name(singularize_name)
               if self.collect.include?(singularize_name) and send(pluralize_name).include?(resource)
                 send(pluralize_name).delete resource
                 return true
