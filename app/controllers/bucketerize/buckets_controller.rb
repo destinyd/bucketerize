@@ -68,7 +68,7 @@ module Bucketerize
     end
 
     def bucket_start
-      current_user.send(get_bucket_type.downcase.pluralize)
+      current_user.send(get_bucket_type.underscore.split('/').last.pluralize)
     end
 
     def collection
@@ -77,7 +77,7 @@ module Bucketerize
 
     def get_resource(resource_id)
       return nil if params[:resource_type].blank?
-      params[:resource_type].humanize.constantize.find resource_id
+      params[:resource_type].constantize.find resource_id
     end
   end
 end
