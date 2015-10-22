@@ -33,7 +33,7 @@ module Bucketerize
           belongs_to :user
 
           self.collect.each do |sym|
-            has_and_belongs_to_many sym.to_s.split('/').last.pluralize, class_name: sym.to_s.camelize
+            has_and_belongs_to_many sym.to_s.split('/').last.pluralize, class_name: sym.to_s.camelize, inverse_of: self.name.underscore.split('/').last.pluralize.to_sym
           end
 
           define_method :get_pluralize_name do |singularize_name|
