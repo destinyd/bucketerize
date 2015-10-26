@@ -20,7 +20,7 @@ module Bucketerize
           case self.into.class.name
           when "Symbol", "String"
             self.into = self.into.to_s
-            has_and_belongs_to_many into.to_s.split('/').last.pluralize, class_name: into.camelize
+            has_and_belongs_to_many into.to_s.split('/').last.pluralize, class_name: into.camelize, inverse_of: self.name.underscore.split('/').last.pluralize.to_sym
           else
             raise "must be symbol or string"
           end

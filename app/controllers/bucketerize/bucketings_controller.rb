@@ -90,15 +90,11 @@ module Bucketerize
     end
 
     def bucket_start
-      current_user.send(get_bucket_type.downcase.pluralize)
-    end
-
-    def get_resource_type
-      params[:resource_type]
+      current_user.send(get_bucket_type.underscore.split('/').last.pluralize)
     end
 
     def resource_start
-      get_resource_type.humanize.constantize
+      params[:resource_type].constantize
     end
   end
 end

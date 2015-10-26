@@ -96,7 +96,7 @@ describe 'bucket_methods' do
       act_as_bucket_resource into: :album
     end
 
-    class Photo
+    class Music
       include Bucketerize::Concerns::Resource
       act_as_bucket_resource into: :album
     end
@@ -104,7 +104,7 @@ describe 'bucket_methods' do
 
     class Album
       include Bucketerize::Concerns::Bucket
-      act_as_bucket collect: [:picture, :photo]
+      act_as_bucket collect: [:picture, :music]
     end
 
     let(:album){Album.create}
@@ -129,48 +129,48 @@ describe 'bucket_methods' do
       # 重复添加返回 false
       album.add_resource(picture).should == false
 
-      photo = Photo.create
-      album.photos.should_not be_any
-      album.add_resource(photo).should == true
-      album.photos.should be_any
+      music = Music.create
+      album.musics.should_not be_any
+      album.add_resource(music).should == true
+      album.musics.should be_any
       # 重复添加返回 false
-      album.add_resource(photo).should == false
+      album.add_resource(music).should == false
     end
 
     it "#add_resources" do
       resources = []
       picture = Picture.create
-      photo = Photo.create
+      music = Music.create
       resources << picture
-      resources << photo
+      resources << music
       album.add_resources(resources).should == true
       album.pictures.should be_any
-      album.photos.should be_any
+      album.musics.should be_any
     end
 
     describe "add two type resources" do
       let(:picture) { Picture.create}
-      let(:photo) { Photo.create}
+      let(:music) { Music.create}
 
       before do
-        album.add_resources [picture, photo]
+        album.add_resources [picture, music]
       end
 
       it "#remove_resource" do
         album.pictures.count.should == 1
-        album.photos.count.should == 1
+        album.musics.count.should == 1
         album.pictures.should include(picture)
-        album.photos.should include(photo)
+        album.musics.should include(music)
         album.remove_resource(picture).should == true
         album.pictures.should_not include(picture)
         album.include_resource?(picture).should == false
-        album.remove_resource(photo).should == true
-        album.pictures.should_not include(photo)
-        album.include_resource?(photo).should == false
+        album.remove_resource(music).should == true
+        album.pictures.should_not include(music)
+        album.include_resource?(music).should == false
         album.pictures.count.should == 0
-        album.photos.count.should == 0
+        album.musics.count.should == 0
         album.remove_resource(picture).should == false
-        album.remove_resource(photo).should == false
+        album.remove_resource(music).should == false
       end
 
       it "#remove_resources [picture]" do
@@ -181,27 +181,27 @@ describe 'bucket_methods' do
         album.remove_resources([picture]).should == true
       end
 
-      it "#remove_resources [photo]" do
-        album.remove_resources([photo]).should == true
-        album.photos.should_not include(photo)
+      it "#remove_resources [music]" do
+        album.remove_resources([music]).should == true
+        album.musics.should_not include(music)
 
         # 没有则忽略
-        album.remove_resources([photo]).should == true
+        album.remove_resources([music]).should == true
       end
 
-      it "#remove_resources [picture, photo]" do
-        album.remove_resources([picture, photo]).should == true
+      it "#remove_resources [picture, music]" do
+        album.remove_resources([picture, music]).should == true
         album.pictures.should_not include(picture)
-        album.photos.should_not include(photo)
-        album.include_resources?([picture, photo]).should == false
+        album.musics.should_not include(music)
+        album.include_resources?([picture, music]).should == false
 
         # 没有则忽略
-        album.remove_resources([picture, photo]).should == true
+        album.remove_resources([picture, music]).should == true
       end
 
       it "#remove_resources wrong type" do
         album.remove_resources(picture).should == false
-        album.remove_resources(photo).should == false
+        album.remove_resources(music).should == false
         album.remove_resources([]).should == false
         album.remove_resources(nil).should == false
       end
