@@ -4,5 +4,4 @@ Bucketerize::Engine.routes.draw do
   get '/bucketings' => 'bucketings#index', as: :bucketings
   post '/bucketings' => 'bucketings#create'
   delete '/bucketings' => 'bucketings#destroy'
-  root 'home#index'
 end
