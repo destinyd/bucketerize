@@ -98,8 +98,10 @@ class @ModalBucketerizeHook
     "<a class=\"list-group-item #{if added then "active" else ""}\" data-id=\"#{id}\" id=\"bucket_#{id}\"><strong>#{name}</strong><span class=\"bucket-meta\">更新时间</span></a>"
 
   append_modal: ->
-    console.log 'append_modal'
-    jQuery('body').append """
+    jQuery('body').append @modal_template()
+    
+  modal_template: ->
+    """
             <div class='modal fade' id='modal-buckets'>
               <div class='modal-dialog'>
                 <div class='modal-content'>
