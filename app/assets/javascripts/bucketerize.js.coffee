@@ -1,3 +1,154 @@
+class @ModalBucketerizeHook
+  constructor: (@api) ->
+    console.log 'ModalBucketerizeHook'
+    @append_modal()
+    @$modal_buckets = jQuery('#modal-buckets')
+    @$el = jQuery("[data-rel=bucketerize]")
+    @resource_ids = [@$el.data('resource-id')]
+    @_init()
+
+  _init: () ->
+    @bucket_ids = []
+    @$el.on 'click', =>
+      @$modal_buckets.modal('show')
+
+    # 创建按钮点击
+    @$modal_buckets.find('.new').click () =>
+      console.log 'click new'
+      @modal_new_bucket.modal('show')
+
+    @modal_new_bucket = jQuery('#modal-new-bucket')
+
+    @modal_new_bucket.find('.create').click () =>
+      console.log 'create'
+      name = @modal_new_bucket.find('.name').val()
+      desc = @modal_new_bucket.find('.desc').val()
+      console.log name
+      console.log desc
+      @api.create_bucket(name, desc)
+
+    # 点击事件绑定：添加、移除到bucket
+    that = this
+    @$modal_buckets.on 'click', '.buckets a.list-group-item', ->
+      if $(this).hasClass('active')
+        bucket_id = $(this).data('id')
+        that.bucket_ids = [bucket_id]
+        that.api.remove_from()
+      else
+        bucket_id = $(this).data('id')
+        that.bucket_ids = [bucket_id]
+        that.api.add_to() # that.api.resource_type, that.api.resource_id, bucket_type, bucket_id)
+
+  el_click: (el) ->
+    console.log 'hook el click'
+    @api.get_all_buckets()
+    @$modal_buckets.modal('show')
+
+  get_resources_buckets_success: (data) =>
+    console.log 'hook get resources buckets success'
+    console.log data
+    str = ''
+    that = this
+    for obj in data
+      jQuery.each obj.buckets, ->
+        bucket = this
+        str += that._str_bucket(bucket.id, bucket.name, bucket.added)
+    @$modal_buckets.find('.buckets').html(str)
+
+  create_bucket_success: (bucket) =>
+    console.log 'hook create bucket success'
+    that = this
+    str = @_str_bucket(bucket.id, bucket.name, false)
+    @$modal_buckets.find('.buckets').append str
+
+    @modal_new_bucket.find('.name').val('')
+    @modal_new_bucket.find('.desc').val('')
+    @modal_new_bucket.modal('hide')
+
+  add_to_success: (resource_ids, buckets) =>
+    that = this
+    jQuery.each buckets, ->
+      bucket = this
+      that.$modal_buckets.find("[data-id=#{bucket.id}]").addClass('active')
+
+  remove_from_success:  (resource_ids, buckets) =>
+    console.log 'remove_from_success'
+    that = this
+    jQuery.each buckets, ->
+      bucket = this
+      that.$modal_buckets.find("[data-id=#{bucket.id}]").removeClass('active')
+
+  replace_buckets_success: (resource_ids, buckets) =>
+    console.log 'hook replace buckets success'
+
+    that = this
+    jQuery.each buckets, ->
+      bucket = this
+      that.$modal_buckets.find("[data-id=#{bucket.id}]").removeClass('active')
+
+
+  assigned_resource_ids: () ->
+    #["557f9857636865734e000002"] #, "557f985b636865734e000003"]
+    @resource_ids
+
+  assigned_bucket_ids: ->
+    @bucket_ids
+
+  _str_bucket: (id, name, added) ->
+    "<a class=\"list-group-item #{if added then "active" else ""}\" data-id=\"#{id}\" id=\"bucket_#{id}\"><strong>#{name}</strong><span class=\"bucket-meta\">更新时间</span></a>"
+
+  append_modal: ->
+    jQuery('body').append @modal_template()
+    
+  modal_template: ->
+    """
+            <div class='modal fade' id='modal-buckets'>
+              <div class='modal-dialog'>
+                <div class='modal-content'>
+                  <div class='modal-header'>
+                    <button aria-label='Close' class='close' data-dismiss='modal' type='button'>
+                      <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4 class='modal-title'>添加 #{@api.resource_type} 至 #{@api.bucket_type}</h4>
+                  </div>
+                  <div class='modal-body'>
+                    <div class='list-group buckets'></div>
+                    <ol class='group'></ol>
+                  </div>
+                  <div class='modal-footer'>
+                    <button class='btn btn-default' data-dismiss='modal' type='button'>Done</button>
+                    <a class='new btn btn-primary' href='javascript:;'>+ 新建#{@api.bucket_type}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class='modal fade' id='modal-new-bucket'>
+              <div class='modal-dialog'>
+                <div class='modal-content'>
+                  <div class='modal-header'>
+                    <button aria-label='Close' class='close' data-dismiss='modal' type='button'>
+                      <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4 class='modal-title'>新建#{@api.bucket_type}</h4>
+                  </div>
+                  <div class='modal-body'>
+                    <div class='form-group'>
+                      <input class='form-control name' placeholder='名称' type='text'>
+                    </div>
+                    <div class='form-group'>
+                      <input class='form-control desc' placeholder='描述' type='text'>
+                    </div>
+                  </div>
+                  <div class='modal-footer'>
+                    <button class='btn btn-default' data-dismiss='modal' type='button'>取消</button>
+                    <a class='create btn btn-primary' href='javascript:;'>提交</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+      """
+
+
 class @BucketerizeHook
   constructor: (@api) ->
     console.log 'bucketerize hook constructor'
@@ -43,7 +194,7 @@ class @Bucketerize
     path_fix: ""
     bucket_type: "Bucket"
     resource_type: "Shot"
-    hook_class: BucketerizeHook
+    mode: 'custom'
 
   _init: ->
     for key, val of @_default_configs
@@ -57,6 +208,12 @@ class @Bucketerize
 
     @resource_type = @configs['resource_type']
     @bucket_type = @configs["bucket_type"]
+
+    if @configs['mode'] == 'modal'
+      @configs['hook_class'] = ModalBucketerizeHook if !@configs['hook_class']
+    else
+      @configs['hook_class'] = BucketerizeHook
+
     @hook = new @configs["hook_class"](@)
 
   get_all_buckets: () ->
