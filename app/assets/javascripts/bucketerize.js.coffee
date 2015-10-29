@@ -159,10 +159,10 @@ class @StandardBucketerizeHook
     that = this
     @api.$el.on 'click', ->
       $this = jQuery(this)
-      #if $this.hasClass('liked')
-        #that.api.remove_from()
-      #else
-      that.api.add_to()
+      if $this.hasClass('liked')
+        that.api.remove_from()
+      else
+        that.api.add_to()
 
   get_resources_buckets_success: (data) =>
     that = this
@@ -172,22 +172,23 @@ class @StandardBucketerizeHook
         if this['added'] and this['name'] == '默认'
           jQuery.each that.api.$el, ->
             $this = jQuery(this)
-            $this.addClass('liked').html('已收藏') if $this.data('resource-id') == resource_id
+            $this.removeClass('btn-info').addClass('btn-default').addClass('liked').html('已收藏') if $this.data('resource-id') == resource_id
+        else
+          jQuery.each that.api.$el, ->
+            $this = jQuery(this)
+            $this.addClass('btn-info').removeClass('btn-default').html('收藏') if $this.data('resource-id') == resource_id
 
   remove_from_success:  (resource_ids, buckets) =>
-    console.log 'remove_from_success'
-    that = this
-    jQuery.each buckets, ->
-      bucket = this
-      that.$modal_buckets.find("[data-id=#{bucket.id}]").removeClass('active')
-
-  add_to_success: (resource_ids, buckets) =>
-    that = this
     resource_id = resource_ids[0]
     @api.$el.each (index)->
       $this = jQuery(this)
-      if $this.data('resource-id') == resource_id
-        $this.html('已收藏')
+      $this.removeClass('btn-default').addClass('btn-info').removeClass('liked').html('收藏') if $this.data('resource-id') == resource_id
+
+  add_to_success: (resource_ids, buckets) =>
+    resource_id = resource_ids[0]
+    @api.$el.each (index)->
+      $this = jQuery(this)
+      $this.addClass('btn-default').addClass('liked').removeClass('btn-info').html('已收藏') if $this.data('resource-id') == resource_id
 
   assigned_resource_ids: () ->
     @resource_ids
