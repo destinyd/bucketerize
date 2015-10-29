@@ -1,5 +1,3 @@
-%p#notice= notice
-
 %a.add_to_folder.btn.btn-default{href: 'javascript:;', data: {rel: "bucketerize", resource: {type: 'photo', id: @photo.id}}} 添加到Folder
 
 %p
@@ -7,37 +5,3 @@
 = link_to 'Edit', edit_photo_path(@photo)
 \|
 = link_to 'Back', photos_path
-
-#modal-folders.modal.fade
-  .modal-dialog
-    .modal-content
-      .modal-header
-        %button.close{:type => "button", :data => {:dismiss => "modal"}, :aria => {:label => "Close"}}
-          %span{:aria => {:hidden => "true"}} &times;
-        %h4.modal-title Add this photo to a folder
-
-      .modal-body
-        %ol.buckets.group
-
-      .modal-footer
-        %button.btn.btn-default{:type => "button", :data => {:dismiss => "modal"}} Done
-        %a.new.btn.btn-primary{href: 'javascript:;'} + Create a new folder
-
-
-#modal-new-folder.modal.fade
-  .modal-dialog
-    .modal-content
-      .modal-header
-        %button.close{:type => "button", :data => {:dismiss => "modal"}, :aria => {:label => "Close"}}
-          %span{:aria => {:hidden => "true"}} &times;
-        %h4.modal-title 新建Folder
-
-      .modal-body
-        .form-group
-          %input.form-control.name{type: "text", placeholder: "名称"}
-        .form-group
-          %input.form-control.desc{type: "text", placeholder: "描述"}
-
-      .modal-footer
-        %button.btn.btn-default{:type => "button", :data => {:dismiss => "modal"}} 取消
-        %a.create.btn.btn-primary{href: 'javascript:;'} 提交

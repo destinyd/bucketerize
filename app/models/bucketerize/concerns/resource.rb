@@ -26,7 +26,7 @@ module Bucketerize
           end
 
           define_method :add_to_bucket do |bucket|
-            singularize_name = bucket.class.name.downcase
+            singularize_name = bucket.class.name.underscore
             pluralize_name = singularize_name.split('/').last.pluralize
             return bucket.add_resource(self) if self.into == singularize_name
             false
@@ -43,7 +43,7 @@ module Bucketerize
           end
 
           define_method :remove_from_bucket do |resource|
-            return true if resource.class.name.downcase == self.into and resource.remove_resource(self)
+            return true if resource.class.name.underscore == self.into and resource.remove_resource(self)
             false
           end
 

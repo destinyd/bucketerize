@@ -33,10 +33,19 @@ module Bucketerize
         bucket_ids = params[:bucket_ids]
         resource_ids = params[:resource_ids]
 
-        @buckets = bucket_start.find bucket_ids
-        @resources = resource_start.find resource_ids
-        @resources.each do |resource|
-          resource.add_to_buckets @buckets
+        if bucket_ids.blank?
+          @bucket = current_user.buckets.where(name: '默认').first_or_create
+          @resources = resource_start.find resource_ids
+          @resources.each do |resource|
+            @bucket.add_resource resource
+          end
+          @buckets = [@bucket]
+        else
+          @buckets = bucket_start.find bucket_ids
+          @resources = resource_start.find resource_ids
+          @resources.each do |resource|
+            resource.add_to_buckets @buckets
+          end
         end
         render json: {
           action: "add_to",
@@ -61,10 +70,19 @@ module Bucketerize
         bucket_ids = params[:bucket_ids]
         resource_ids = params[:resource_ids]
 
-        @buckets = bucket_start.find bucket_ids
-        @resources = resource_start.find resource_ids
-        @resources.each do |resource|
-          resource.remove_from_buckets @buckets
+        if bucket_ids.blank?
+          @bucket = current_user.buckets.where(name: '默认').first_or_create
+          @resources = resource_start.find resource_ids
+          @resources.each do |resource|
+            @bucket.remove_resource resource
+          end
+          @buckets = [@bucket]
+        else
+          @buckets = bucket_start.find bucket_ids
+          @resources = resource_start.find resource_ids
+          @resources.each do |resource|
+            resource.remove_from_buckets @buckets
+          end
         end
         render json: {
           action: "remove_from",

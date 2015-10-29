@@ -5,8 +5,8 @@ module Bucketerize
 
     def index
       #begin 
-        buckets = collection
         if params[:resource_ids].blank?
+          buckets = collection
           render json: {
             action: "get_buckets",
             result: buckets.map{ |bucket|
@@ -19,6 +19,12 @@ module Bucketerize
           }
         else
           resource_ids =  params[:resource_ids]
+          if params[:bucket_type] == 'Bucket'
+            current_user.buckets.where(name: '默认').first_or_create
+            buckets = current_user.buckets
+          else
+            buckets = collection
+          end
           result = {
             action: "get_resources_buckets",
             result: resource_ids.map do |resource_id|
