@@ -3,5 +3,5 @@ User.class_eval do
 end
 
 Bucketerize::Bucket.class_eval do
-  act_as_bucket collect: :photo
+  act_as_bucket collect: :project
 end

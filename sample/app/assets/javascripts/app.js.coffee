@@ -9,7 +9,7 @@ jQuery(document).on 'ready page:load', ->
 
   standard_configs = 
     selector: '.like[data-rel=like]'
-    resource_type: "Photo"
+    resource_type: "Project"
     mode: 'standard'
   window.standard = new Bucketerize(standard_configs)
   window.standard.get_resources_buckets()
