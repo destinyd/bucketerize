@@ -1,9 +1,11 @@
-%h1 Listing projects
+%h1.page-header 经典收藏演示
+.p15.bg-info 请新建一个项目，然后进入详情页面试用
+%p
 
-%table
+%table.table.table-bordered.table-striped
   %thead
     %tr
-      %th
+      %th ID
       %th
       %th
 
@@ -11,10 +13,9 @@
     - @projects.each do |project|
       %tr
         %td= link_to project.id, project
-        %td= link_to 'Edit', edit_project_path(project)
-        %td= link_to 'Destroy', project, :method => :delete, :data => { :confirm => 'Are you sure?' }
+        %td= link_to '修改', edit_project_path(project)
+        %td= link_to '删除', project, :method => :delete, :data => { :confirm => '你确定?' }
 
 %br
 
-= link_to 'New project', new_project_path
-
+%a.btn.btn-primary{href: (new_project_path)} 新建项目
