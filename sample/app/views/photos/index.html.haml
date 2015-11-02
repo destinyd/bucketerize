@@ -1,9 +1,11 @@
-%h1 Listing photos
+%h1.page-header 交互收藏演示
+.p15.bg-info 请新建一个图片，然后进入详情页面试用
+%p
 
-%table
+%table.table.table-bordered.table-striped
   %thead
     %tr
-      %th
+      %th ID
       %th
       %th
 
@@ -11,9 +13,9 @@
     - @photos.each do |photo|
       %tr
         %td= link_to photo.id, photo
-        %td= link_to 'Edit', edit_photo_path(photo)
-        %td= link_to 'Destroy', photo, :method => :delete, :data => { :confirm => 'Are you sure?' }
+        %td= link_to '修改', edit_photo_path(photo)
+        %td= link_to '删除', photo, :method => :delete, :data => { :confirm => '你确定?' }
 
 %br
 
-= link_to 'New Photo', new_photo_path
+%a.btn.btn-primary{href: (new_photo_path)} 新建图片

@@ -8,6 +8,7 @@ module Bucketerize
         include Mongoid::Timestamps
 
         cattr_accessor :into
+        cattr_accessor :mode
       end
 
       module ClassMethods
@@ -16,14 +17,25 @@ module Bucketerize
         def act_as_bucket_resource(*fields, &block)
           options = fields.extract_options!
           self.into = options[:into]
+          self.mode = options[:mode]
 
-          case self.into.class.name
-          when "Symbol", "String"
-            self.into = self.into.to_s
-            has_and_belongs_to_many into.to_s.split('/').last.pluralize, class_name: into.camelize, inverse_of: self.name.underscore.split('/').last.pluralize.to_sym
+          case self.mode
+          when :multi
+            # 复合收藏
+            case self.into.class.name
+            when "Symbol", "String"
+              self.into = self.into.to_s
+            else
+              raise "must be symbol or string"
+            end
+          when :standard
+            # 经典收藏
+            self.into = 'bucketerize/bucket' if self.into.blank?
           else
-            raise "must be symbol or string"
+            raise 'mode must be :multi or :standard'
           end
+
+          has_and_belongs_to_many into.to_s.split('/').last.pluralize, class_name: into.camelize, inverse_of: self.name.underscore.split('/').last.pluralize.to_sym
 
           define_method :add_to_bucket do |bucket|
             singularize_name = bucket.class.name.underscore

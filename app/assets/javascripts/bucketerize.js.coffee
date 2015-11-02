@@ -3,13 +3,12 @@ class @ModalBucketerizeHook
     console.log 'ModalBucketerizeHook'
     @append_modal()
     @$modal_buckets = jQuery('#modal-buckets')
-    @$el = jQuery("[data-rel=bucketerize]")
-    @resource_ids = [@$el.data('resource-id')]
+    @resource_ids = [@api.resource_id]
     @_init()
 
   _init: () ->
     @bucket_ids = []
-    @$el.on 'click', =>
+    @api.$el.on 'click', =>
       @$modal_buckets.modal('show')
 
     # 创建按钮点击
@@ -49,10 +48,13 @@ class @ModalBucketerizeHook
     console.log data
     str = ''
     that = this
-    for obj in data
-      jQuery.each obj.buckets, ->
+    for resource in data
+      added = false
+      jQuery.each resource.buckets, ->
         bucket = this
+        added = added || bucket.added
         str += that._str_bucket(bucket.id, bucket.name, bucket.added)
+      that.api.$el.select("[data-bucketerize-resource-id=#{resource.id}]").addClass('active') if added
     @$modal_buckets.find('.buckets').html(str)
 
   create_bucket_success: (bucket) =>
@@ -70,6 +72,11 @@ class @ModalBucketerizeHook
     jQuery.each buckets, ->
       bucket = this
       that.$modal_buckets.find("[data-id=#{bucket.id}]").addClass('active')
+      that.api.$el.addClass('active')
+
+    jQuery.each resource_ids, ->
+      resource_id = this
+      that.api.$el.select("[data-resource-id=#{resource_id}]").addClass('active')
 
   remove_from_success:  (resource_ids, buckets) =>
     console.log 'remove_from_success'
@@ -77,6 +84,8 @@ class @ModalBucketerizeHook
     jQuery.each buckets, ->
       bucket = this
       that.$modal_buckets.find("[data-id=#{bucket.id}]").removeClass('active')
+    
+    @api.$el.removeClass('active') if @$modal_buckets.find('.list-group-item.active').length == 0
 
   replace_buckets_success: (resource_ids, buckets) =>
     console.log 'hook replace buckets success'
@@ -151,7 +160,7 @@ class @ModalBucketerizeHook
 class @StandardBucketerizeHook
   constructor: (@api) ->
     console.log 'StandardBucketerizeHook'
-    @resource_ids = [@api.$el.data('resource-id')]
+    @resource_ids = [@api.resource_id]
     @_init()
 
   _init: () ->
@@ -159,42 +168,50 @@ class @StandardBucketerizeHook
     that = this
     @api.$el.on 'click', ->
       $this = jQuery(this)
-      if $this.hasClass('liked')
+      if $this.hasClass('active')
         that.api.remove_from()
       else
         that.api.add_to()
 
   get_resources_buckets_success: (data) =>
+    console.log 'get_resources_buckets_success'
+    console.log data
     that = this
     jQuery.each data, (index) ->
+      console.log this
       resource_id = this['id']
       jQuery.each this['buckets'], (index1) ->
+        console.log this
         if this['added'] and this['name'] == '默认'
           jQuery.each that.api.$el, ->
             $this = jQuery(this)
-            $this.removeClass('btn-info').addClass('btn-default').addClass('liked').html('已收藏') if $this.data('resource-id') == resource_id
+            $this.addClass('active') if $this.data('bucketerizeResourceId') == resource_id and !$this.hasClass('active')
         else
           jQuery.each that.api.$el, ->
             $this = jQuery(this)
-            $this.addClass('btn-info').removeClass('btn-default').html('收藏') if $this.data('resource-id') == resource_id
+            $this.removeClass('active') if $this.data('bucketerizeResourceId') == resource_id
 
   remove_from_success:  (resource_ids, buckets) =>
     resource_id = resource_ids[0]
     @api.$el.each (index)->
       $this = jQuery(this)
-      $this.removeClass('btn-default').addClass('btn-info').removeClass('liked').html('收藏') if $this.data('resource-id') == resource_id
+      $this.removeClass('active') if $this.data('bucketerizeResourceId') == resource_id
 
   add_to_success: (resource_ids, buckets) =>
     resource_id = resource_ids[0]
     @api.$el.each (index)->
       $this = jQuery(this)
-      $this.addClass('btn-default').addClass('liked').removeClass('btn-info').html('已收藏') if $this.data('resource-id') == resource_id
+      $this.addClass('active') if $this.data('bucketerizeResourceId') == resource_id and !$this.hasClass('active')
 
   assigned_resource_ids: () ->
     @resource_ids
 
   assigned_bucket_ids: ->
     @bucket_ids
+
+  error: (error) ->
+    console.log 'error'
+    console.log error
 
 class @BucketerizeHook
   constructor: (@api) ->
@@ -235,13 +252,40 @@ class @BucketerizeHook
 
 class @Bucketerize
   constructor: (@configs)->
+    console.log 'Bucketerize'
+    @_init()
+
+  _init: ->
+    for key, val of @_default_configs
+      @configs[key] ||= val
+
+    @selector = @configs['selector']
+    @path_fix = @configs['path_fix']
+
+    if @selector
+      @$el = jQuery @selector
+      if @$el.length > 0
+        jQuery.each @$el, (index) ->
+          $this = jQuery(this)
+          $this.data 'el', $this
+          configs = $this.data()
+          console.log configs
+
+          api = new BucketerizeApi(configs)
+          console.log api
+
+  _default_configs:
+    path_fix: ""
+    selector: '[data-rel=bucketerize]'
+
+class @BucketerizeApi
+  constructor: (@configs)->
+    console.log 'BucketerizeApi'
     @_init()
 
   _default_configs:
     path_fix: ""
-    bucket_type: "Bucket"
-    resource_type: "Shot"
-    mode: 'custom'
+    bucketerizeBucketType: "Bucket"
 
   _init: ->
     for key, val of @_default_configs
@@ -251,33 +295,42 @@ class @Bucketerize
     @buckets_path = @path_fix + "/buckets"
     @bucketings_path = @path_fix + "/bucketings"
 
-    @$el = jQuery(@configs["selector"])
+    @$el = @configs['el']
+    return if @$el.length == 0
+    if @$el.length > 0
+      @resource_id = @configs['bucketerizeResourceId']
+      @resource_type = @configs['bucketerizeResourceType']
+      @bucket_type = @configs["bucketerizeBucketType"]
+      console.log '@bucket_type'
+      console.log @bucket_type
 
-    @resource_type = @configs['resource_type']
-    @bucket_type = @configs["bucket_type"]
+      if @configs['bucketerizeMode'] == 'multi'
+        @configs['hook_class'] = ModalBucketerizeHook if !@configs['hook_class']
+      else if @configs['bucketerizeMode'] == 'standard'
+        @configs['hook_class'] = StandardBucketerizeHook if !@configs['hook_class']
+      else
+        @configs['hook_class'] = BucketerizeHook if !@configs['hook_class']
 
-    if @configs['mode'] == 'modal'
-      @configs['hook_class'] = ModalBucketerizeHook if !@configs['hook_class']
-    else if @configs['mode'] == 'standard'
-      @configs['hook_class'] = StandardBucketerizeHook if !@configs['hook_class']
-    else
-      @configs['hook_class'] = BucketerizeHook
+      console.log @configs
 
-    @hook = new @configs["hook_class"](@)
+      @hook = new @configs["hook_class"](@)
+
+      @get_resources_buckets()
 
   get_all_buckets: () ->
-    console.log @
-    resource_ids = @hook.assigned_resource_ids()
-    if !@bucket_type or !@resource_type
-      return @hook.error {error: "params blank"}
+    if @$el.length > 0
+      resource_ids = @hook.assigned_resource_ids()
+      if !@bucket_type or !@resource_type
+        return @hook.error {error: "params blank"}
 
     @_get_buckets()
 
   get_resources_buckets: () ->
-    if !@bucket_type or !@resource_type
-      return @hook.error {error: "params blank"}
+    if @$el.length > 0
+      if !@bucket_type or !@resource_type
+        return @hook.error {error: "params blank"}
 
-    @_get_buckets(@hook.assigned_resource_ids())
+      @_get_buckets(@hook.assigned_resource_ids())
 
   _get_buckets: (resource_ids) ->
     console.log '_get_buckets'
@@ -303,20 +356,24 @@ class @Bucketerize
 
   create_bucket: (bucket_name, bucket_desc) ->
     console.log 'create bucket'
-    @_create_bucket(@bucket_type, bucket_name, bucket_desc)
+    if @$el.length > 0
+      @_create_bucket(@bucket_type, bucket_name, bucket_desc)
 
   add_to: () ->
     console.log 'add to bucket'
-    console.log @hook.assigned_bucket_ids()
-    @_add_to_bucket(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
+    if @$el.length > 0
+      console.log @hook.assigned_bucket_ids()
+      @_add_to_bucket(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
 
   remove_from: () ->
     console.log 'remove from bucket'
-    @_remove_from_bucket(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
+    if @$el.length > 0
+      @_remove_from_bucket(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
 
   replace_buckets: () ->
     console.log 'replace_buckets'
-    @_replace_buckets(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
+    if @$el.length > 0
+      @_replace_buckets(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
 
   _create_bucket: (bucket_type, name, desc) ->
     jQuery.ajax

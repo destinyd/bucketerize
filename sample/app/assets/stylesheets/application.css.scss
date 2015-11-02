@@ -15,6 +15,7 @@
  */
 @import "bootstrap-sprockets";
 @import "bootstrap";
+@import "bucketerize";
 
 #container{
   padding-top: 60px;
@@ -58,4 +59,7 @@ border-radius: 4px;
 .bucketed{
   color: green;
   background-color: red;
+}
+.p15{
+  padding: 15px;
 }

@@ -1,4 +1,8 @@
-%a.like.btn.btn-info{href: 'javascript:;', data: {rel: "like", resource: {type: 'project', id: @project.id}}} 收藏
+.bucketerize{data: {rel: "bucketerize", bucketerize: {mode: 'standard', resource_type: 'Project', resource_id: @project.id}}}
+  .unhas
+    %button.btn.btn-default 收藏
+  .has
+    %button.btn.btn-info 已收藏
 
 %p
 
