@@ -1,0 +1,17 @@
+.bucketerize{
+  .has{
+    display: none;
+  }
+  .unhas{
+    display: block;
+  }
+}
+
+.bucketerize.active{
+  .has{
+    display: block;
+  }
+  .unhas{
+    display: none;
+  }
+}
