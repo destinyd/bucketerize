@@ -3,13 +3,12 @@ class @ModalBucketerizeHook
     console.log 'ModalBucketerizeHook'
     @append_modal()
     @$modal_buckets = jQuery('#modal-buckets')
-    @$el = jQuery("[data-rel=bucketerize]")
-    @resource_ids = [@$el.data('resource-id')]
+    @resource_ids = [@api.resource_id]
     @_init()
 
   _init: () ->
     @bucket_ids = []
-    @$el.on 'click', =>
+    @api.$el.on 'click', =>
       @$modal_buckets.modal('show')
 
     # 创建按钮点击
@@ -151,7 +150,7 @@ class @ModalBucketerizeHook
 class @StandardBucketerizeHook
   constructor: (@api) ->
     console.log 'StandardBucketerizeHook'
-    @resource_ids = [@api.$el.data('resource-id')]
+    @resource_ids = [@api.resource_id]
     @_init()
 
   _init: () ->
@@ -165,36 +164,45 @@ class @StandardBucketerizeHook
         that.api.add_to()
 
   get_resources_buckets_success: (data) =>
+    console.log 'get_resources_buckets_success'
+    console.log data
     that = this
     jQuery.each data, (index) ->
+      console.log this
       resource_id = this['id']
       jQuery.each this['buckets'], (index1) ->
+        console.log this
         if this['added'] and this['name'] == '默认'
           jQuery.each that.api.$el, ->
             $this = jQuery(this)
-            $this.removeClass('btn-info').addClass('btn-default').addClass('liked').html('已收藏') if $this.data('resource-id') == resource_id
+            console.log $this
+            $this.removeClass('btn-info').addClass('btn-default').addClass('liked').html('已收藏') if $this.data('bucketerizeResourceId') == resource_id
         else
           jQuery.each that.api.$el, ->
             $this = jQuery(this)
-            $this.addClass('btn-info').removeClass('btn-default').html('收藏') if $this.data('resource-id') == resource_id
+            $this.addClass('btn-info').removeClass('btn-default').html('收藏') if $this.data('bucketerizeResourceId') == resource_id
 
   remove_from_success:  (resource_ids, buckets) =>
     resource_id = resource_ids[0]
     @api.$el.each (index)->
       $this = jQuery(this)
-      $this.removeClass('btn-default').addClass('btn-info').removeClass('liked').html('收藏') if $this.data('resource-id') == resource_id
+      $this.removeClass('btn-default').addClass('btn-info').removeClass('liked').html('收藏') if $this.data('bucketerizeResourceId') == resource_id
 
   add_to_success: (resource_ids, buckets) =>
     resource_id = resource_ids[0]
     @api.$el.each (index)->
       $this = jQuery(this)
-      $this.addClass('btn-default').addClass('liked').removeClass('btn-info').html('已收藏') if $this.data('resource-id') == resource_id
+      $this.addClass('btn-default').addClass('liked').removeClass('btn-info').html('已收藏') if $this.data('bucketerizeResourceId') == resource_id
 
   assigned_resource_ids: () ->
     @resource_ids
 
   assigned_bucket_ids: ->
     @bucket_ids
+
+  error: (error) ->
+    console.log 'error'
+    console.log error
 
 class @BucketerizeHook
   constructor: (@api) ->
@@ -235,14 +243,40 @@ class @BucketerizeHook
 
 class @Bucketerize
   constructor: (@configs)->
+    console.log 'Bucketerize'
+    @_init()
+
+  _init: ->
+    for key, val of @_default_configs
+      @configs[key] ||= val
+
+    @selector = @configs['selector']
+    @path_fix = @configs['path_fix']
+
+    if @selector
+      @$el = jQuery @selector
+      if @$el.length > 0
+        jQuery.each @$el, (index) ->
+          $this = jQuery(this)
+          $this.data 'el', $this
+          configs = $this.data()
+          console.log configs
+
+          api = new BucketerizeApi(configs)
+          console.log api
+
+  _default_configs:
+    path_fix: ""
+    selector: '[data-rel=bucketerize]'
+
+class @BucketerizeApi
+  constructor: (@configs)->
+    console.log 'BucketerizeApi'
     @_init()
 
   _default_configs:
     path_fix: ""
-    bucket_type: "Bucket"
-    resource_type: "Shot"
-    mode: 'custom'
-    selector: '[data-rel=bucketerize]'
+    bucketerizeBucketType: "Bucket"
 
   _init: ->
     for key, val of @_default_configs
@@ -252,21 +286,27 @@ class @Bucketerize
     @buckets_path = @path_fix + "/buckets"
     @bucketings_path = @path_fix + "/bucketings"
 
-    console.log @configs["selector"]
-    console.log @$el
-    @$el = jQuery(@configs["selector"])
+    @$el = @configs['el']
+    return if @$el.length == 0
     if @$el.length > 0
-      @resource_type = @configs['resource_type']
-      @bucket_type = @configs["bucket_type"]
+      @resource_id = @configs['bucketerizeResourceId']
+      @resource_type = @configs['bucketerizeResourceType']
+      @bucket_type = @configs["bucketerizeBucketType"]
+      console.log '@bucket_type'
+      console.log @bucket_type
 
-      if @configs['mode'] == 'modal'
+      if @configs['bucketerizeMode'] == 'multi'
         @configs['hook_class'] = ModalBucketerizeHook if !@configs['hook_class']
-      else if @configs['mode'] == 'standard'
+      else if @configs['bucketerizeMode'] == 'standard'
         @configs['hook_class'] = StandardBucketerizeHook if !@configs['hook_class']
       else
-        @configs['hook_class'] = BucketerizeHook
+        @configs['hook_class'] = BucketerizeHook if !@configs['hook_class']
+
+      console.log @configs
 
       @hook = new @configs["hook_class"](@)
+
+      @get_resources_buckets()
 
   get_all_buckets: () ->
     if @$el.length > 0
