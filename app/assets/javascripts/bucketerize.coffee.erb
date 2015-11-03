@@ -275,7 +275,7 @@ class @Bucketerize
           console.log api
 
   _default_configs:
-    path_fix: ""
+    path_fix: "<%= Bucketerize.get_mount_prefix %>"
     selector: '[data-rel=bucketerize]'
 
 class @BucketerizeApi
@@ -284,7 +284,7 @@ class @BucketerizeApi
     @_init()
 
   _default_configs:
-    path_fix: ""
+    path_fix: "<%= Bucketerize.get_mount_prefix %>"
     bucketerizeBucketType: "Bucket"
 
   _init: ->
