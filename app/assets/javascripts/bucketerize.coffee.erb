@@ -1,6 +1,5 @@
 class @ModalBucketerizeHook
   constructor: (@api) ->
-    console.log 'ModalBucketerizeHook'
     @append_modal()
     @$modal_buckets = jQuery('#modal-buckets')
     @resource_ids = [@api.resource_id]
@@ -13,17 +12,13 @@ class @ModalBucketerizeHook
 
     # 创建按钮点击
     @$modal_buckets.find('.new').click () =>
-      console.log 'click new'
       @modal_new_bucket.modal('show')
 
     @modal_new_bucket = jQuery('#modal-new-bucket')
 
     @modal_new_bucket.find('.create').click () =>
-      console.log 'create'
       name = @modal_new_bucket.find('.name').val()
       desc = @modal_new_bucket.find('.desc').val()
-      console.log name
-      console.log desc
       @api.create_bucket(name, desc)
 
     # 点击事件绑定：添加、移除到bucket
@@ -39,13 +34,10 @@ class @ModalBucketerizeHook
         that.api.add_to() # that.api.resource_type, that.api.resource_id, bucket_type, bucket_id)
 
   el_click: (el) ->
-    console.log 'hook el click'
     @api.get_all_buckets()
     @$modal_buckets.modal('show')
 
   get_resources_buckets_success: (data) =>
-    console.log 'hook get resources buckets success'
-    console.log data
     str = ''
     that = this
     for resource in data
@@ -58,7 +50,6 @@ class @ModalBucketerizeHook
     @$modal_buckets.find('.buckets').html(str)
 
   create_bucket_success: (bucket) =>
-    console.log 'hook create bucket success'
     that = this
     str = @_str_bucket(bucket.id, bucket.name, false)
     @$modal_buckets.find('.buckets').append str
@@ -79,7 +70,6 @@ class @ModalBucketerizeHook
       that.api.$el.select("[data-resource-id=#{resource_id}]").addClass('active')
 
   remove_from_success:  (resource_ids, buckets) =>
-    console.log 'remove_from_success'
     that = this
     jQuery.each buckets, ->
       bucket = this
@@ -88,7 +78,6 @@ class @ModalBucketerizeHook
     @api.$el.removeClass('active') if @$modal_buckets.find('.list-group-item.active').length == 0
 
   replace_buckets_success: (resource_ids, buckets) =>
-    console.log 'hook replace buckets success'
 
     that = this
     jQuery.each buckets, ->
@@ -159,7 +148,6 @@ class @ModalBucketerizeHook
 
 class @StandardBucketerizeHook
   constructor: (@api) ->
-    console.log 'StandardBucketerizeHook'
     @resource_ids = [@api.resource_id]
     @_init()
 
@@ -174,14 +162,10 @@ class @StandardBucketerizeHook
         that.api.add_to()
 
   get_resources_buckets_success: (data) =>
-    console.log 'get_resources_buckets_success'
-    console.log data
     that = this
     jQuery.each data, (index) ->
-      console.log this
       resource_id = this['id']
       jQuery.each this['buckets'], (index1) ->
-        console.log this
         if this['added'] and this['name'] == '默认'
           jQuery.each that.api.$el, ->
             $this = jQuery(this)
@@ -252,7 +236,6 @@ class @BucketerizeHook
 
 class @Bucketerize
   constructor: (@configs)->
-    console.log 'Bucketerize'
     @_init()
 
   _init: ->
@@ -269,10 +252,8 @@ class @Bucketerize
           $this = jQuery(this)
           $this.data 'el', $this
           configs = $this.data()
-          console.log configs
 
           api = new BucketerizeApi(configs)
-          console.log api
 
   _default_configs:
     path_fix: "<%= Bucketerize.get_mount_prefix %>"
@@ -280,7 +261,6 @@ class @Bucketerize
 
 class @BucketerizeApi
   constructor: (@configs)->
-    console.log 'BucketerizeApi'
     @_init()
 
   _default_configs:
@@ -301,8 +281,6 @@ class @BucketerizeApi
       @resource_id = @configs['bucketerizeResourceId']
       @resource_type = @configs['bucketerizeResourceType']
       @bucket_type = @configs["bucketerizeBucketType"]
-      console.log '@bucket_type'
-      console.log @bucket_type
 
       if @configs['bucketerizeMode'] == 'multi'
         @configs['hook_class'] = ModalBucketerizeHook if !@configs['hook_class']
@@ -310,8 +288,6 @@ class @BucketerizeApi
         @configs['hook_class'] = StandardBucketerizeHook if !@configs['hook_class']
       else
         @configs['hook_class'] = BucketerizeHook if !@configs['hook_class']
-
-      console.log @configs
 
       @hook = new @configs["hook_class"](@)
 
@@ -333,7 +309,6 @@ class @BucketerizeApi
       @_get_buckets(@hook.assigned_resource_ids())
 
   _get_buckets: (resource_ids) ->
-    console.log '_get_buckets'
     jQuery.ajax
       url: @buckets_path
       method: "GET"
@@ -342,8 +317,6 @@ class @BucketerizeApi
         resource_type: @resource_type
         "resource_ids[]": resource_ids
       success: (res) =>
-        console.log "buckets success"
-        console.log res
         if res['error']
           @hook.error(res.error)
         else
@@ -355,23 +328,18 @@ class @BucketerizeApi
 
 
   create_bucket: (bucket_name, bucket_desc) ->
-    console.log 'create bucket'
     if @$el.length > 0
       @_create_bucket(@bucket_type, bucket_name, bucket_desc)
 
   add_to: () ->
-    console.log 'add to bucket'
     if @$el.length > 0
-      console.log @hook.assigned_bucket_ids()
       @_add_to_bucket(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
 
   remove_from: () ->
-    console.log 'remove from bucket'
     if @$el.length > 0
       @_remove_from_bucket(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
 
   replace_buckets: () ->
-    console.log 'replace_buckets'
     if @$el.length > 0
       @_replace_buckets(@resource_type, @hook.assigned_resource_ids(), @bucket_type, @hook.assigned_bucket_ids())
 
@@ -384,12 +352,9 @@ class @BucketerizeApi
         name: name
         desc: desc
       success: (res) =>
-        console.log "create bucket success"
-        console.log res
         if res['error']
           @hook.error(res.error)
         else
-          console.log res.result
           @hook.create_bucket_success(res.result)
 
   _add_to_bucket: (resource_type, resource_ids, bucket_type, bucket_ids) ->
@@ -402,13 +367,9 @@ class @BucketerizeApi
         bucket_type: bucket_type
         "bucket_ids[]": bucket_ids
       success: (res) =>
-        console.log "add to bucket success"
-        console.log res
         if res['error']
           @hook.error(res.error)
         else
-          console.log res.result.resource_ids
-          console.log res.result.buckets
           @hook.add_to_success(res.result.resource_ids, res.result.buckets)
 
   _remove_from_bucket: (resource_type, resource_ids, bucket_type, bucket_ids) ->
@@ -421,13 +382,9 @@ class @BucketerizeApi
         bucket_type: bucket_type
         "bucket_ids[]": bucket_ids
       success: (res) =>
-        console.log "add to bucket success"
-        console.log res
         if res['error']
           @hook.error(res.error)
         else
-          console.log res.result.resource_ids
-          console.log res.result.buckets
           @hook.remove_from_success(res.result.resource_ids, res.result.buckets)
 
 
@@ -441,12 +398,8 @@ class @BucketerizeApi
         bucket_type: bucket_type
         "bucket_ids[]": bucket_ids
       success: (res) =>
-        console.log "replace buckets success"
-        console.log res
         if res['error']
           @hook.error(res.error)
         else
-          console.log res.result.resource_ids
-          console.log res.result.buckets
           @hook.replace_buckets_success(res.result.resource_ids, res.result.buckets)
 
