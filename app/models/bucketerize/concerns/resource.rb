@@ -31,8 +31,9 @@ module Bucketerize
           when :standard
             # 经典收藏
             self.into = 'bucketerize/bucket' if self.into.blank?
+            c_name = name
             Bucketerize::Bucket.class_eval do
-              act_as_bucket collect: name.underscore.split('/').last, class_name: name
+              act_as_bucket collect: c_name.underscore
             end
           else
             raise 'mode must be :multi or :standard'
