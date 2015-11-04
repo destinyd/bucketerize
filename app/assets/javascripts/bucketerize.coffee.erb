@@ -31,7 +31,7 @@ class @ModalBucketerizeHook
       else
         bucket_id = $(this).data('id')
         that.bucket_ids = [bucket_id]
-        that.api.add_to() # that.api.resource_type, that.api.resource_id, bucket_type, bucket_id)
+        that.api.add_to()
 
   el_click: (el) ->
     @api.get_all_buckets()
@@ -86,7 +86,6 @@ class @ModalBucketerizeHook
 
 
   assigned_resource_ids: () ->
-    #["557f9857636865734e000002"] #, "557f985b636865734e000003"]
     @resource_ids
 
   assigned_bucket_ids: ->
@@ -324,8 +323,6 @@ class @BucketerizeApi
             @hook.get_all_buckets_success(res.result)
           else if res['action'] == 'get_resources_buckets'
             @hook.get_resources_buckets_success(res.result)
-
-
 
   create_bucket: (bucket_name, bucket_desc) ->
     if @$el.length > 0
