@@ -8,7 +8,7 @@ end
 describe 'bucket_resource_methods' do
   class Book
     include Bucketerize::Concerns::Resource
-    act_as_bucket_resource into: :box
+    act_as_bucket_resource mode: :multi, into: :box
   end
 
   it do
