@@ -35,6 +35,12 @@ module Bucketerize
             Bucketerize::Bucket.class_eval do
               act_as_bucket collect: c_name.underscore
             end
+
+            User.class_eval do
+              define_method :get_default_bucket do
+                buckets.where(name: '默认').first_or_create
+              end
+            end
           else
             raise 'mode must be :multi or :standard'
           end
