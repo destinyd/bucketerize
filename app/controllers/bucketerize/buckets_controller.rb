@@ -20,7 +20,8 @@ module Bucketerize
         else
           resource_ids =  params[:resource_ids]
           if params[:bucket_type] == 'Bucket'
-            current_user.buckets.where(name: '默认').first_or_create
+            # 创建默认Bucket
+            current_user.get_default_bucket
             buckets = current_user.buckets
           else
             buckets = collection
