@@ -34,7 +34,7 @@ module Bucketerize
         resource_ids = params[:resource_ids]
 
         if bucket_ids.blank?
-          @bucket = current_user.buckets.where(name: '默认').first_or_create
+          @bucket = current_user.get_default_bucket
           @resources = resource_start.find resource_ids
           @resources.each do |resource|
             @bucket.add_resource resource
