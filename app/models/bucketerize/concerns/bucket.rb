@@ -16,13 +16,13 @@ module Bucketerize
         # act_as_bucket :collect => [:book, :photo]
         def act_as_bucket(*fields, &block)
           options = fields.extract_options!
-          self.collect = options[:collect]
 
-          case self.collect.class.name
+          self.collect ||= []
+          case options[:collect].class.name
           when "Symbol", "String"
-            self.collect = [self.collect.to_s]
+            self.collect += [options[:collect].to_s]
           when "Array"
-            self.collect = self.collect.map(&:to_s)
+            self.collect = options[:collect].map(&:to_s)
           else
             raise "must be array, string or symbol"
           end
