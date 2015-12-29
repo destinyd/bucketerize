@@ -61,5 +61,33 @@ describe 'bucket_resource_methods' do
       book1.remove_from_buckets([box1, box2]).should == true
     end
   end
+
+  describe "修复同时多个经典收藏报错BUG" do
+    class Book1
+      include Bucketerize::Concerns::Resource
+      act_as_bucket_resource mode: :standard
+    end
+
+    class Book2
+      include Bucketerize::Concerns::Resource
+      act_as_bucket_resource mode: :standard
+    end
+
+    before do
+      current_user = create(:user)
+      @bucket = current_user.get_default_bucket
+      @book1 = Book1.create
+    end
+
+    it '#add_resource' do
+      @bucket.add_resource @book1
+      @bucket.reload
+      @bucket.book1s.include? @book1
+
+      @bucket.add_resource @book2
+      @bucket.reload
+      @bucket.book2s.include? @book2
+    end
+  end
 end
 
